@@ -3,6 +3,5 @@ services:
   - type: web
     name: invoice-app
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run invoice_app.py --server.port 10000 --server.enableCORS false
-    plan: free
+    buildCommand: ""
+    startCommand: streamlit run invoice_app.py --server.port $PORT --server.address 0.0.0.0
