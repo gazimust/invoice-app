@@ -1,29 +1,22 @@
-
 import streamlit as st
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-import os
 from datetime import date
-import base64
+import io
 
 # Set paths
 TEMPLATE_DIR = "templates"
 
-# Configure page
 st.set_page_config(page_title="Invoice Generator", layout="wide")
-
 st.title("🧾 Invoice Generator for MET Logistics Ltd")
 
-# Sidebar for invoice sender info
 st.sidebar.header("Invoice From")
 invoice_from = st.sidebar.text_area("Name & Address", "Name\nAddress Line 1\nAddress Line 2\nPostcode")
 
-# Sidebar for payment info
 st.sidebar.header("Payment Info")
 sort_code = st.sidebar.text_input("Sort Code", "04-00-72")
 account_no = st.sidebar.text_input("Account Number", "24348341")
 
-# Main form
 with st.form("invoice_form"):
     st.subheader("Invoice Details")
 
@@ -67,7 +60,6 @@ with st.form("invoice_form"):
 
     submitted = st.form_submit_button("Preview Invoice")
 
-# ==== Render Invoice ====
 if submitted:
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template("invoice_template.html")
@@ -88,22 +80,17 @@ if submitted:
         wise_line=wise_line
     )
 
-    # Show HTML preview
     st.subheader("Preview Invoice")
     st.components.v1.html(html_out, height=900, scrolling=True)
 
     if st.button("Generate PDF Invoice"):
-        pdf_file = f"Invoice_{invoice_number}.pdf"
+        pdf = HTML(string=html_out).write_pdf()
 
-        # Create PDF
-        HTML(string=html_out).write_pdf(pdf_file)
+        st.download_button(
+            label="📥 Download Invoice PDF",
+            data=pdf,
+            file_name=f"Invoice_{invoice_number}.pdf",
+            mime="application/pdf",
+        )
 
-        # Read PDF as binary
-        with open(pdf_file, "rb") as f:
-            pdf_bytes = f.read()
-            b64 = base64.b64encode(pdf_bytes).decode()
-
-        href = f'<a href="data:application/octet-stream;base64,{b64}" download="{pdf_file}">📥 Download Invoice PDF</a>'
-        st.markdown(href, unsafe_allow_html=True)
-
-        st.success("✅ PDF generated. Click the link above to download.")
+        st.success("✅ PDF generated. Click the button above to download.")
