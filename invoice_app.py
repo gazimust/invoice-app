@@ -2,7 +2,6 @@ import streamlit as st
 from jinja2 import Environment, FileSystemLoader
 from datetime import date
 
-# Set paths
 TEMPLATE_DIR = "templates"
 
 st.set_page_config(page_title="Invoice Generator", layout="wide")
@@ -57,9 +56,8 @@ with st.form("invoice_form"):
     if admin_fee:
         total += 12.50
 
-    submitted = st.form_submit_button("Preview Invoice")
+    submitted = st.form_submit_button("Generate Invoice")
 
-# Render Invoice
 if submitted:
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template("invoice_template.html")
@@ -80,15 +78,12 @@ if submitted:
         wise_line=wise_line
     )
 
-    st.subheader("Preview Invoice")
-    st.components.v1.html(html_out, height=900, scrolling=True)
+    html_bytes = html_out.encode('utf-8')
+    st.download_button(
+        label="📥 Download Invoice as HTML",
+        data=html_bytes,
+        file_name=f"Invoice_{invoice_number}.html",
+        mime="text/html",
+    )
 
-    if st.button("Generate Invoice HTML File"):
-        html_bytes = html_out.encode('utf-8')
-        st.download_button(
-            label="📥 Download Invoice as HTML",
-            data=html_bytes,
-            file_name=f"Invoice_{invoice_number}.html",
-            mime="text/html",
-        )
-        st.success("✅ Invoice generated. Click the button above to download.")
+    st.success("✅ Invoice generated. Click the button above to download.")
